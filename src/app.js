@@ -14,8 +14,6 @@ const app = express();
 
 connectDB();
 
-passportConfig(passport);
-
 app.use(express.json());
 
 app.use(session({
@@ -36,10 +34,11 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+passportConfig();
 
-app.use('/auth', authRouter);
-app.use('/user', userRouter);
-app.use('/post', postRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
+app.use('/api/post', postRouter);
 
 
 const PORT = process.env.PORT || 3000;

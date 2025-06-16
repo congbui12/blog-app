@@ -6,20 +6,20 @@ export const createPost = async (req, res) => {
     try {
         const newPost = new Post({ title, content, userId });
         await newPost.save();
-        res.status(201).json({ message: 'Post created successfully' });
+        return res.status(201).json({ message: 'Post created successfully' });
     } catch (error) {
-        console.error(`Error: ` + error.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Create post failed: ', error);
+        return res.status(500).json({ message: 'Server error' });
     }
 }
 
 export const getPostsByUser = async (req, res) => {
     try {
-        const posts = await Post.find({ userId: req.user._id }).populate('userId', 'username');
-        res.status(200).json(posts);
+        const posts = await Post.find({ userId: req.user._id }).populate('userId', 'email');
+        return res.status(200).json(posts);
     } catch (error) {
-        console.error(`Error: ` + error.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Get posts by user failed: ', error);
+        return res.status(500).json({ message: 'Server error' });
     }
 }
 
@@ -36,12 +36,11 @@ export const updatePost = async (req, res) => {
         if (title) post.title = title;
         if (content) post.content = content;
         await post.save();
-        res.status(200).json(post);
+        return res.status(200).json(post);
     } catch (error) {
-        console.error(`Error: ` + error.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Update post failed: ', error);
+        return res.status(500).json({ message: 'Server error' });
     }
-
 }
 
 export const deletePost = async (req, res) => {
@@ -52,9 +51,9 @@ export const deletePost = async (req, res) => {
             return res.status(404).json({ message: 'Post not found or you cannot delete this post' });
         }
         await post.deleteOne();
-        res.status(200).json({ message: 'Post deleted successfully' });
+        return res.status(200).json({ message: 'Post deleted successfully' });
     } catch (error) {
-        console.error(`Error: ` + error.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Delete post failed: ', error);
+        return res.status(500).json({ message: 'Server error' });
     }
 }
