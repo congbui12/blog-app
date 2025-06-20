@@ -8,13 +8,29 @@ import postRouter from "./routes/postRoute.js";
 import userRouter from "./routes/userRoute.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 connectDB();
 
+// Set 'views' folder
+app.set('views', path.join(__dirname, 'views'));
+
+// Set 'view engine' to ejs
+app.set('view engine', 'ejs');
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files (CSS, JS, images)
+// app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
     secret: process.env.SESSION_SECRET,

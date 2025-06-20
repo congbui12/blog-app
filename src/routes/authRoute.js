@@ -1,7 +1,7 @@
 import express from "express";
 import { registerUserValidator, loginUserValidator, emailSentValidator, resetPasswordValidator } from "../utils/userValidator.js";
 import { handleValidation } from "../middleware/validationMiddleware.js";
-import { registerUser, loginUser, forgotPassword, resetPassword, logoutUser } from "../controllers/authController.js";
+import { registerUser, loginUser, forgotPassword, resetPassword, logoutUser, openResetForm } from "../controllers/authController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
@@ -12,6 +12,8 @@ authRouter.post('/register', registerUserValidator, handleValidation, registerUs
 authRouter.post('/login', loginUserValidator, handleValidation, loginUser);
 
 authRouter.post('/forgot-password', emailSentValidator, handleValidation, forgotPassword);
+
+authRouter.get('/reset-password/:token', openResetForm);
 
 authRouter.post('/reset-password', resetPasswordValidator, handleValidation, resetPassword);
 

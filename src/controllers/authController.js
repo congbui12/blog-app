@@ -57,9 +57,13 @@ export const forgotPassword = async (req, res) => {
             await existingUser.save();
             const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
+            const resetPasswordContent = `
+                <p>Click the link below to reset your password:</p>
+                <a href="${resetLink}">Reset link</a>
+            `;
             // Send reset link email (ignore send errors silently)
             try {
-                await sendEmail(email, 'Reset password', `Click on this link to reset your password: ${resetLink}`);
+                await sendEmail(email, 'Reset password', resetPasswordContent);
             } catch (emailError) {
                 console.log('Failed to send reset email: ', emailError);
                 // not return error here for security
@@ -72,6 +76,11 @@ export const forgotPassword = async (req, res) => {
         console.log('Email sending error: ', error);
         return res.status(500).json({ message: 'Server error' });
     }
+}
+
+export const openResetForm = (req, res) => {
+    const { token } = req.params;
+    res.render('emails/reset-password-form', { token, message: null });
 }
 
 export const resetPassword = async (req, res) => {
@@ -90,8 +99,10 @@ export const resetPassword = async (req, res) => {
         user.resetToken = undefined;
         user.resetTokenExpiry = undefined;
         await user.save();
+        const successMessage = `Your password has been updated successfully. You can now login <a href="/auth/login">here</a>.`;
+        res.render('emails/reset-password-form', { token: null, message: `${successMessage}` });
 
-        return res.status(200).json({ message: 'Reset password successfully' });
+        // return res.status(200).json({ message: 'Reset password successfully' });
     } catch (error) {
         console.error('Reset password failed: ', error);
         return res.status(500).json({ message: 'Server error' });
