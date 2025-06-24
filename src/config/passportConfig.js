@@ -7,17 +7,14 @@ export default function passportConfig() {
 
     // After login, Passport saves the user ID
     passport.serializeUser((user, done) => {
-        // stored in req.session.passport.user, can use user._id
-        done(null, user.id);
+        done(null, user.id);    // stored in req.session.passport.user, can use user._id
     });
 
     // On future requests, Passport reads that ID and fetches the full user
     passport.deserializeUser(async (id, done) => {
         try {
             const user = await User.findById(id);
-
-            // stored in req.user
-            done(null, user);
+            done(null, user);   // stored in req.user
         } catch (error) {
             done(error);
         }
@@ -35,13 +32,13 @@ export default function passportConfig() {
                     return done(null, false, { message: 'Email not found' });
                 }
 
-                const isMatch = await bcrypt.compare(password, user.password);
-                if (!isMatch) {
+                const isPasswordMatch = await bcrypt.compare(password, user.password);
+                if (!isPasswordMatch) {
                     return done(null, false, { message: 'Invalid credentials' });
                 }
                 return done(null, user);
             } catch (error) {
-                console.error('Authentication failed: ', error);
+                console.error('Authentication error: ', error);
                 return done(error);
             }
         }

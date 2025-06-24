@@ -3,34 +3,31 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import passport from "passport";
 import passportConfig from "./config/passportConfig.js";
-import authRouter from "./routes/authRoute.js";
-import postRouter from "./routes/postRoute.js";
-import userRouter from "./routes/userRoute.js";
+import authApiRouter from "./routes/api/authApiRouter.js";
+import postApiRouter from "./routes/api/postApiRouter.js";
+import userApiRouter from "./routes/api/userApiRouter.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
+import errorHandler from "./middleware/errorHandler.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import authViewRouter from "./routes/view/authViewRouter.js";
 
+const app = express();
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+app.set('view engine', 'ejs');  // Set 'view engine' to ejs
+app.set('views', path.join(__dirname, 'views'));    // Set 'views' folder
 
 connectDB();
-
-// Set 'views' folder
-app.set('views', path.join(__dirname, 'views'));
-
-// Set 'view engine' to ejs
-app.set('view engine', 'ejs');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (CSS, JS, images)
-// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public'))); // Serve static files (CSS, JS, images)
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -52,10 +49,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 passportConfig();
 
-app.use('/api/auth', authRouter);
-app.use('/api/user', userRouter);
-app.use('/api/post', postRouter);
+app.use('/auth', authViewRouter);
+app.use('/api/auth', authApiRouter);
+app.use('/api/user', userApiRouter);
+app.use('/api/post', postApiRouter);
 
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
