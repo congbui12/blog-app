@@ -1,31 +1,35 @@
 import { check } from "express-validator";
 
-const userValidation = {
-    validateRegister: [
+const validateUser = {
+    register: [
+        check('username')
+            .notEmpty().withMessage('Username is required')
+            .isLength({ min: 6, max: 20 }).withMessage('Username must be between 6 and 20 characters')
+            .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers and underscores'),
         check('email')
             .notEmpty().withMessage('Email is required')
             .isEmail().withMessage('Please provide a valid email address'),
-        check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+        check('password')
+            .notEmpty().withMessage('Password is required')
+            .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     ],
-    validateLogin: [
-        check('email')
-            .notEmpty().withMessage('Email is required')
-            .isEmail().withMessage('Please provide a valid email address'),
+    login: [
+        check('login').notEmpty().withMessage('Login is required'),
         check('password').notEmpty().withMessage('Password is required')
     ],
-    validateEmail: [
+    email: [
         check('email')
-            .notEmpty().withMessage('Email is required for sending reset password link')
+            .notEmpty().withMessage('Email is required')
             .isEmail().withMessage('Please provide a valid email address')
     ],
-    validateResetPassword: [
+    resetPassword: [
+        check('resetToken')
+            .notEmpty().withMessage('Reset token is missing'),
         check('newPassword')
             .notEmpty().withMessage('New password is required')
             .isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
-        check('resetPWDToken')
-            .notEmpty().withMessage('Reset token is missing')
     ],
-    validateChangePassword: [
+    changePassword: [
         check('oldPassword')
             .notEmpty().withMessage('Current password is required'),
         check('newPassword')
@@ -36,11 +40,11 @@ const userValidation = {
         // .matches(/[0-9]/).withMessage('Must contain a number')
         // .matches(/[^A-Za-z0-9]/).withMessage('Must contain a special character'),
     ],
-    validateCreatePost: [
+    createPost: [
         check('title').notEmpty().withMessage('Title is required'),
         check('content').notEmpty().withMessage('Content is required')
     ],
-    validateUpdatePost: [
+    editPost: [
         check('title')
             .optional()
             .notEmpty().withMessage('Title is required'),
@@ -50,4 +54,4 @@ const userValidation = {
     ],
 }
 
-export default userValidation;
+export default validateUser;

@@ -22,14 +22,16 @@ export default function passportConfig() {
 
     passport.use(new LocalStrategy(
         {
-            usernameField: 'email',
+            usernameField: 'login',
             passwordField: 'password'
         },
-        async (email, password, done) => {
+        async (login, password, done) => {
             try {
-                const user = await User.findOne({ email });
+                const isEmail = login.includes('@');
+
+                const user = await User.findOne(isEmail ? { email: login } : { username: login });
                 if (!user) {
-                    return done(null, false, { message: 'Email not found' });
+                    return done(null, false, { message: 'User not found' });
                 }
 
                 const isPasswordMatch = await bcrypt.compare(password, user.password);

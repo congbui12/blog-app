@@ -1,27 +1,40 @@
 import User from "../../models/User.js";
 import bcrypt from "bcrypt";
 import passport from "passport";
-import sendEmail from "../../utils/sendEmail.js";
+import sendEmail from "../../utils/send.email.js";
 import crypto from "crypto";
 import AppError from "../../utils/AppError.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const authApi = {
+const authController = {
     registerUser: async (req, res, next) => {
-        const { email, password } = req.body;
+        const { username, email, password } = req.body;
         try {
-            let user = await User.findOne({ email });
-            if (user) return next(new AppError('User already exists', 400));
+            let existingUsername = await User.findOne({ username });
+            if (existingUsername) return next(new AppError('Username is already taken', 400));
+
+            let existingEmail = await User.findOne({ email });
+            if (existingEmail) return next(new AppError('Email is already taken', 400));
 
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
-            user = new User({ email, password: hashedPassword });
-            await user.save();
-            return res.status(201).json({ message: 'User registered successfully' });
+
+            const newUser = new User({ username, email, password: hashedPassword });
+            await newUser.save();
+
+            return res
+                .status(201)
+                .json({
+                    message: 'User registered successfully',
+                    user: {
+                        username: newUser.username,
+                        email: newUser.email,
+                    },
+                });
         } catch (error) {
-            console.error('Failed to register a new user: ', error);
+            console.error('Registration error: ', error);
             return next(error);
         }
     },
@@ -38,7 +51,7 @@ const authApi = {
                     console.error('Error during session creation: ', err);
                     return next(err);
                 }
-                return res.status(200).json({ message: 'Login successfully', email: user.email });
+                return res.status(200).json({ message: 'Login successfully', user: user.username });
             });
         })(req, res, next);
     },
@@ -68,8 +81,8 @@ const authApi = {
                 const token = crypto.randomBytes(32).toString('hex');
                 const tokenExpiry = Date.now() + 15 * 60 * 1000;   // 15 minutes
 
-                user.resetToken = token;
-                user.resetTokenExpiry = tokenExpiry;
+                user.resetPasswordToken = token;
+                user.resetPasswordTokenExpiry = tokenExpiry;
                 await user.save();
 
                 const resetPasswordLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
@@ -82,41 +95,41 @@ const authApi = {
                 try {
                     await sendEmail(email, 'RESET YOUR PASSWORD', resetPasswordContent);
                 } catch (error) {
-                    console.error(`Failed to send reset password instruction to email ${email}: `, error);
+                    console.error(`Error while sending email: `, error);
                 }
 
                 return res.status(200).json({ message: 'If this email is registered, a reset password link has been sent' });
             }
         } catch (error) {
-            console.error('Email sending unexpected error: ', error);
+            console.error('Error during password recovery: ', error);
             return next(error);
         }
     },
     resetPassword: async (req, res, next) => {
-        const { resetPWDToken, newPassword } = req.body;
+        const { resetToken, newPassword } = req.body;
 
         try {
             const user = await User.findOne({
-                resetToken: resetPWDToken,
-                resetTokenExpiry: { $gt: Date.now() }
+                resetPasswordToken: resetToken,
+                resetPasswordTokenExpiry: { $gt: Date.now() }
             });
 
-            if (!user) return next(new AppError('The reset password link is either invalid or expired'));
+            if (!user) return next(new AppError('This link is either invalid or expired'));
 
             const salt = await bcrypt.genSalt(10);
             const hashedNewPassword = await bcrypt.hash(newPassword, salt);
             user.password = hashedNewPassword;
-            user.resetToken = undefined;
-            user.resetTokenExpiry = undefined;
+            user.resetPasswordToken = undefined;
+            user.resetPasswordTokenExpiry = undefined;
             await user.save();
 
-            res.status(200).json({ message: 'Your password has been updated successfully' });
+            res.status(200).json({ message: 'Password updated successfully' });
         } catch (error) {
-            console.error('Password resetting unexpected error: ', error);
+            console.error('Error while resetting the password: ', error);
             return next(error);
         }
     },
 }
 
-export default authApi;
+export default authController;
 

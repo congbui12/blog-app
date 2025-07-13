@@ -1,5 +1,5 @@
 const authView = {
-    resetPWDForm: (req, res) => {
+    resetPasswordForm: (req, res) => {
         const token = req.query.token;
         res.render('reset-password-form', { token });
     },

@@ -2,16 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import passport from "passport";
-import passportConfig from "./config/passportConfig.js";
-import authApiRouter from "./routes/api/authApiRouter.js";
-import postApiRouter from "./routes/api/postApiRouter.js";
-import userApiRouter from "./routes/api/userApiRouter.js";
+import passportConfig from "./config/passport.config.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-import errorHandler from "./middleware/errorHandler.js";
+import errorHandler from "./middleware/error.handler.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import authViewRouter from "./routes/view/authViewRouter.js";
+import authRouter from "./routes/api/auth.router.js";
+import postRouter from "./routes/api/post.router.js";
+import userRouter from "./routes/api/user.router.js";
+import authViewRouter from "./routes/view/auth.view.router.js";
 
 const app = express();
 dotenv.config();
@@ -50,9 +50,9 @@ app.use(passport.session());
 passportConfig();
 
 app.use('/auth', authViewRouter);
-app.use('/api/auth', authApiRouter);
-app.use('/api/user', userApiRouter);
-app.use('/api/post', postApiRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
+app.use('/api/post', postRouter);
 
 app.use(errorHandler);
 
