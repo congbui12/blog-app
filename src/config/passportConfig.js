@@ -1,6 +1,6 @@
 import passport from "passport";
 import LocalStrategy from "passport-local";
-import bcrypt from "bcrypt";
+import helper from "../utils/helper.js";
 import User from "../models/User.js";
 
 export default function passportConfig() {
@@ -28,13 +28,11 @@ export default function passportConfig() {
         async (login, password, done) => {
             try {
                 const isEmail = login.includes('@');
-
                 const user = await User.findOne(isEmail ? { email: login } : { username: login });
                 if (!user) {
                     return done(null, false, { message: 'User not found' });
                 }
-
-                const isPasswordMatch = await bcrypt.compare(password, user.password);
+                const isPasswordMatch = await helper.comparePassword(password, user.password);
                 if (!isPasswordMatch) {
                     return done(null, false, { message: 'Invalid credentials' });
                 }
